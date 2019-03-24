@@ -9,9 +9,9 @@ class SerializationMerge(config: Config, spark: SparkSession) extends Transforma
 
   override def transform(dataFrame: DataFrame): DataFrame = {
     dataFrame
-      .select(col("u"), explode(col("h")).alias("h"))
-      .groupBy(col("u"))
-      .agg(collect_list(col("h")).alias("h"))
+      .select(col("customer"), explode(col("events")).alias("events"))
+      .groupBy(col("customer"))
+      .agg(collect_list(col("events")).alias("events"))
   }
 }
 

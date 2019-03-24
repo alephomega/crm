@@ -16,12 +16,12 @@ class Summarization(config: Config, spark: SparkSession) extends Transformation(
 
   case class TimeLog(at: String, event: String)
 
-  def toTimeLog(r: Row): TimeLog = TimeLog(r.getAs[String]("at"), r.getAs[String]("ev"))
+  def toTimeLog(r: Row): TimeLog = TimeLog(r.getAs[String]("at"), r.getAs[String]("event"))
 
 
   override def transform(dataFrame: DataFrame): DataFrame = {
     val rdd: RDD[Row] = dataFrame.rdd
-      .map(r => (r.getAs[String]("u"), summarize(r.getAs[Seq[Row]]("h").map(toTimeLog))))
+      .map(r => (r.getAs[String]("customer"), summarize(r.getAs[Seq[Row]]("events").map(toTimeLog))))
       .flatMap({
         case (customer: String, summaries: Map[String, Aggregation]) =>
           summaries.map {

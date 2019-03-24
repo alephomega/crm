@@ -1,21 +1,19 @@
 package com.kakaopage.global.crm.transformations
 
 import com.kakaopage.global.crm.Transformation
-import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import com.typesafe.config.Config
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class Serialization(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
   override def transform(dataFrame: DataFrame): DataFrame = {
-      dataFrame.groupBy("u").agg(collect_list(struct("at", "ev", "meta")).alias("h"))
+      dataFrame.groupBy("customer").agg(collect_list(struct("at", "event", "meta")).alias("events"))
   }
 }
 
 object Serialization {
-
-  def apply(args: Map[String, String], spark: SparkSession) = {
-    args.foreach(kv => sys.props.put(kv._1, kv._2))
-    new Serialization(ConfigFactory.load(), spark)
+  def apply(config: Config, spark: SparkSession) = {
+    new Serialization(config, spark)
   }
 }

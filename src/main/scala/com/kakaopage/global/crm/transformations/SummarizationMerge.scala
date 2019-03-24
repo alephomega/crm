@@ -28,7 +28,7 @@ class SummarizationMerge(config: Config, spark: SparkSession) extends Transforma
 
   def toSummary(row: Row): Summary = {
     val distribution = row.getAs[Row]("distribution")
-    Summary(row.getAs[String]("u"), from, duration, row.getAs[String]("ev"), row.getAs[String]("last"), row.getAs[Int]("frequency"), Distribution(distribution.getAs[Array[Int]]("hour"), distribution.getAs[Array[Int]]("day")))
+    Summary(row.getAs[String]("customer"), from, duration, row.getAs[String]("event"), row.getAs[String]("last"), row.getAs[Int]("frequency"), Distribution(distribution.getAs[Array[Int]]("hour"), distribution.getAs[Array[Int]]("day")))
   }
 
   val from: String = config.getString("source.from")
