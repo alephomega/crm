@@ -1,9 +1,9 @@
 package com.kakaopage.global.crm.transformations
 
 import com.kakaopage.global.crm.Transformation
-import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import com.typesafe.config.Config
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class SerializationMerge(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
@@ -18,8 +18,7 @@ class SerializationMerge(config: Config, spark: SparkSession) extends Transforma
 
 object SerializationMerge {
 
-  def apply(args: Map[String, String], spark: SparkSession) = {
-    args.foreach(kv => sys.props.put(kv._1, kv._2))
-    new SerializationMerge(ConfigFactory.load(), spark)
+  def apply(config: Config, spark: SparkSession) = {
+    new SerializationMerge(config, spark)
   }
 }
