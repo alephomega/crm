@@ -8,7 +8,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 class Serialization(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
   override def transform(dataFrame: DataFrame): DataFrame = {
-      dataFrame.groupBy("customer").agg(collect_list(struct("at", "event", "meta")).alias("events"))
+      dataFrame.groupBy("customer").agg(collect_list(struct("id", "at", "event", "meta")).alias("events"))
   }
 }
 
