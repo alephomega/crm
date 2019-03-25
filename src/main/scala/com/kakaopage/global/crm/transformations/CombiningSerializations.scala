@@ -5,7 +5,7 @@ import com.typesafe.config.Config
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-class SerializationMerge(config: Config, spark: SparkSession) extends Transformation(config, spark) {
+class CombiningSerializations(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
   override def transform(dataFrame: DataFrame): DataFrame = {
     dataFrame
@@ -16,9 +16,9 @@ class SerializationMerge(config: Config, spark: SparkSession) extends Transforma
 }
 
 
-object SerializationMerge {
+object CombiningSerializations {
 
   def apply(config: Config, spark: SparkSession) = {
-    new SerializationMerge(config, spark)
+    new CombiningSerializations(config, spark)
   }
 }
