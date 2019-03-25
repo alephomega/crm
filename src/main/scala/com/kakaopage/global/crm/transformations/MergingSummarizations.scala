@@ -1,12 +1,12 @@
 package com.kakaopage.global.crm.transformations
 
 import com.kakaopage.global.crm.{Aggregation, Distribution, Summary, Transformation}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
-class SummarizationMerge(config: Config, spark: SparkSession) extends Transformation(config, spark) {
+class MergingSummarizations(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
   override def transform(dataFrame: DataFrame): DataFrame = {
     val rdd: RDD[Row] = dataFrame.rdd
@@ -15,7 +15,7 @@ class SummarizationMerge(config: Config, spark: SparkSession) extends Transforma
       .map {
         case ((customer: String, event: String), summaries: Iterable[Summary]) => {
           val aggregation = merge(summaries)
-          Row(customer, from, duration, event, Aggregation.format(aggregation.last.get), aggregation.frequency, aggregation.distribution.toRow())
+          Row.merge(Seq[Row](Row(customer, event), aggregation.toRow): _*)
         }
       }
 
@@ -28,19 +28,16 @@ class SummarizationMerge(config: Config, spark: SparkSession) extends Transforma
 
   def toSummary(row: Row): Summary = {
     val distribution = row.getAs[Row]("distribution")
-    Summary(row.getAs[String]("customer"), from, duration, row.getAs[String]("event"), row.getAs[String]("last"), row.getAs[Int]("frequency"), Distribution(distribution.getAs[Array[Int]]("hour"), distribution.getAs[Array[Int]]("day")))
+    Summary(row.getAs[String]("customer"), row.getAs[String]("event"), row.getAs[String]("last"), row.getAs[Int]("frequency"), Distribution(distribution.getAs[Array[Int]]("hour"), distribution.getAs[Array[Int]]("day")))
   }
 
-  val from: String = config.getString("source.from")
-  val duration: Int = config.getInt("source.duration")
   val schema: StructType = DataType.fromJson(config.getString("sink.schema")).asInstanceOf[StructType]
 }
 
 
-object SummarizationMerge {
+object MergingSummarizations {
 
-  def apply(args: Map[String, String], spark: SparkSession) = {
-    args.foreach(kv => sys.props.put(kv._1, kv._2))
-    new SummarizationMerge(ConfigFactory.load(), spark)
+  def apply(config: Config, spark: SparkSession) = {
+    new MergingSummarizations(config, spark)
   }
 }

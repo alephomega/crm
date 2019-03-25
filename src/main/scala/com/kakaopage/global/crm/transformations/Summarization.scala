@@ -1,16 +1,13 @@
 package com.kakaopage.global.crm.transformations
 
 import com.kakaopage.global.crm.{Aggregation, Transformation}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 
-class Summarization(config: Config, spark: SparkSession) extends Transformation(config, spark) {
-
-  val from: String = config.getString("source.from")
-  val duration: Int = config.getInt("source.duration")
+class Summarization(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
   val schema: StructType = DataType.fromJson(config.getString("sink.schema")).asInstanceOf[StructType]
 
@@ -25,7 +22,7 @@ class Summarization(config: Config, spark: SparkSession) extends Transformation(
       .flatMap({
         case (customer: String, summaries: Map[String, Aggregation]) =>
           summaries.map {
-            case (event: String, aggregation: Aggregation) =>  Row(customer, from, duration, event, aggregation.last, aggregation.frequency, aggregation.distribution.toRow())
+            case (event: String, aggregation: Aggregation) =>  Row.merge(Seq[Row](Row(customer, event), aggregation.toRow): _*)
           }
       })
 
@@ -47,9 +44,7 @@ class Summarization(config: Config, spark: SparkSession) extends Transformation(
 }
 
 object Summarization {
-
-  def apply(args: Map[String, String], spark: SparkSession) = {
-    args.foreach(kv => sys.props.put(kv._1, kv._2))
-    new Summarization(ConfigFactory.load(), spark)
+  def apply(config: Config, spark: SparkSession) = {
+    new Summarization(config, spark)
   }
 }

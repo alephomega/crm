@@ -3,6 +3,7 @@ package com.kakaopage.global.crm
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date, TimeZone}
 
+import org.apache.commons.lang3.time.FastDateFormat
 import org.apache.spark.sql.Row
 
 class Aggregation(val timezone: String) extends Serializable {
@@ -35,7 +36,7 @@ class Aggregation(val timezone: String) extends Serializable {
     distribution.merge(summary.distribution)
   }
 
-  def toRow = Row(Aggregation.format(last.orNull), frequency, distribution.toRow())
+  def toRow: Row = Row(Aggregation.format(last.orNull), frequency, distribution.toRow())
 
   private def h(t: Date) = {
     val cal = Calendar.getInstance(TimeZone.getTimeZone(timezone))
@@ -52,7 +53,7 @@ class Aggregation(val timezone: String) extends Serializable {
 
 object Aggregation {
 
-  val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX")
+  val dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ssXXX")
 
   def apply(timezone: String): Aggregation = new Aggregation(timezone)
 
