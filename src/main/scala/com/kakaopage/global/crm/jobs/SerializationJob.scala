@@ -28,7 +28,7 @@ object SerializationJob {
     val spark: SparkContext = new SparkContext()
     val glueContext: GlueContext = new GlueContext(spark)
 
-    val options = Seq("JOB_NAME", "year", "month", "day", "hour")
+    val options = Seq("JOB_NAME", "date", "hour")
     val args = GlueArgParser.getResolvedOptions(sysArgs, options.toArray)
 
     Job.init(args("JOB_NAME"), glueContext, args.asJava)
