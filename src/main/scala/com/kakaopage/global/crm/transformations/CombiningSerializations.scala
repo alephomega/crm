@@ -7,8 +7,8 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 class CombiningSerializations(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
-  override def transform(dataFrame: DataFrame): DataFrame = {
-    dataFrame
+  override def transform(dataFrames: DataFrame*): DataFrame = {
+    dataFrames(0)
       .select(col("customer"), explode(col("events")).alias("events"))
       .groupBy(col("customer"))
       .agg(collect_list(col("events")).alias("events"))

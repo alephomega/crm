@@ -4,7 +4,7 @@ import com.amazonaws.services.glue.util.{GlueArgParser, Job}
 import com.amazonaws.services.glue.{DynamicFrame, GlueContext}
 import com.kakaopage.global.crm.GlueJob
 import com.kakaopage.global.crm.transformations.Summarization
-import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.SparkContext
 
 import scala.collection.JavaConverters._
@@ -12,8 +12,8 @@ import scala.collection.JavaConverters._
 class SummarizationJob(config: Config, glueContext: GlueContext) extends GlueJob(config, glueContext) {
   val summarization = Summarization(config, sparkSession)
 
-  override def transform(dynamicFrame: DynamicFrame): DynamicFrame = {
-    toDynamicFrame(summarization.transform(dynamicFrame.toDF()))
+  override def transform(dynamicFrames: DynamicFrame*): DynamicFrame = {
+    toDynamicFrame(summarization.transform(dynamicFrames.map(_.toDF()): _*))
   }
 }
 

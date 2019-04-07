@@ -12,8 +12,8 @@ import scala.collection.JavaConverters._
 class CombiningSerializationsJob(config: Config, glueContext: GlueContext) extends GlueJob(config, glueContext) {
   val combining = CombiningSerializations(config, sparkSession)
 
-  override def transform(dynamicFrame: DynamicFrame): DynamicFrame = {
-    toDynamicFrame(combining.transform(dynamicFrame.toDF()))
+  override def transform(dynamicFrames: DynamicFrame*): DynamicFrame = {
+    toDynamicFrame(combining.transform(dynamicFrames.map(_.toDF()): _*))
   }
 }
 

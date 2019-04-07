@@ -8,8 +8,8 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 class MergingSummarizations(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
-  override def transform(dataFrame: DataFrame): DataFrame = {
-    val rdd: RDD[Row] = dataFrame.rdd
+  override def transform(dataFrames: DataFrame*): DataFrame = {
+    val rdd: RDD[Row] = dataFrames(0).rdd
     rdd.map(toSummary)
       .groupBy(s => (s.customer, s.event))
       .map {

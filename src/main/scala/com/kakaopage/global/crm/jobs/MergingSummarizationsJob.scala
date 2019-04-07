@@ -12,8 +12,8 @@ import scala.collection.JavaConverters._
 class MergingSummarizationsJob(config: Config, glueContext: GlueContext) extends GlueJob(config, glueContext) {
   val merging = MergingSummarizations(config, sparkSession)
 
-  override def transform(dynamicFrame: DynamicFrame): DynamicFrame = {
-    toDynamicFrame(merging.transform(dynamicFrame.toDF()))
+  override def transform(dynamicFrames: DynamicFrame*): DynamicFrame = {
+    toDynamicFrame(merging.transform(dynamicFrames.map(_.toDF()): _*))
   }
 }
 

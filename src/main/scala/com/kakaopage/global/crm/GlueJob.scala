@@ -7,17 +7,21 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
+import scala.collection.JavaConverters._
+
 abstract class GlueJob(val config: Config, glueContext: GlueContext) {
   val sparkSession: SparkSession = glueContext.getSparkSession
 
-  def run() = sink.writeDynamicFrame(transform(source.getDynamicFrame()))
+  def run() = sink.writeDynamicFrame(transform(sources.map(_.getDynamicFrame()): _*))
 
-  def source: DataSource = {
-    glueContext.getCatalogSource(
-      database = config.getString("source.database"),
-      tableName = config.getString("source.table"),
-      transformationContext = config.getString("source.context"),
-      pushDownPredicate = config.getString("source.pushdown-predicate"))
+  def sources: Seq[DataSource] = {
+    config.getConfigList("sources").asScala.map(source =>
+      glueContext.getCatalogSource(
+        database = source.getString("database"),
+        tableName = source.getString("table"),
+        transformationContext = source.getString("context"),
+        pushDownPredicate = source.getString("pushdown-predicate"))
+    )
   }
 
   def sink: DataSink = {
@@ -37,7 +41,7 @@ abstract class GlueJob(val config: Config, glueContext: GlueContext) {
     toDynamicFrame(glueContext.createDataFrame(rdd, schema))
   }
 
-  def transform(dynamicFrame: DynamicFrame): DynamicFrame
+  def transform(dynamicFrames: DynamicFrame*): DynamicFrame
 
   def repartition(dynamicFrame: DynamicFrame, partitions: Int): DynamicFrame = {
     dynamicFrame.repartition(
