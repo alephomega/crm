@@ -1,5 +1,8 @@
 package com.kakaopage.global.crm
 
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+
 import com.amazonaws.services.glue.util.JsonOptions
 import com.amazonaws.services.glue.{DataSink, DataSource, DynamicFrame, GlueContext}
 import com.typesafe.config.Config
@@ -12,7 +15,10 @@ import scala.collection.JavaConverters._
 abstract class GlueJob(val config: Config, glueContext: GlueContext) {
   val sparkSession: SparkSession = glueContext.getSparkSession
 
-  def run() = sink.writeDynamicFrame(transform(sources.map(_.getDynamicFrame()): _*))
+  def run() = {
+    suppressParquetLogging()
+    sink.writeDynamicFrame(transform(sources.map(_.getDynamicFrame()): _*))
+  }
 
   def sources: Seq[DataSource] = {
     config.getConfigList("sources").asScala.map(source =>
@@ -47,5 +53,16 @@ abstract class GlueJob(val config: Config, glueContext: GlueContext) {
     dynamicFrame.repartition(
       numPartitions = partitions
     )
+  }
+
+  def suppressParquetLogging() = {
+    val contents =
+      """
+        |org.apache.parquet.handlers=java.util.logging.ConsoleHandler
+        |java.util.logging.ConsoleHandler.level=SEVERE
+      """.stripMargin
+
+    val inputStream = new ByteArrayInputStream(contents.getBytes(StandardCharsets.UTF_8))
+    java.util.logging.LogManager.getLogManager.readConfiguration(inputStream)
   }
 }

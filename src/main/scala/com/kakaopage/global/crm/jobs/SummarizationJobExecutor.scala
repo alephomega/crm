@@ -3,25 +3,25 @@ package com.kakaopage.global.crm.jobs
 import com.amazonaws.services.glue.util.{GlueArgParser, Job}
 import com.amazonaws.services.glue.{DynamicFrame, GlueContext}
 import com.kakaopage.global.crm.GlueJob
-import com.kakaopage.global.crm.transformations.Serialization
+import com.kakaopage.global.crm.transformations.Summarization
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.SparkContext
 
 import scala.collection.JavaConverters._
 
-class SerializationJob(config: Config, glueContext: GlueContext) extends GlueJob(config, glueContext) {
-  val serialization = Serialization(config, sparkSession)
+class SummarizationJobExecutor(config: Config, glueContext: GlueContext) extends GlueJob(config, glueContext) {
+  val summarization = Summarization(config, sparkSession)
 
   override def transform(dynamicFrames: DynamicFrame*): DynamicFrame = {
-    toDynamicFrame(serialization.transform(dynamicFrames.map(_.toDF()): _*))
+    toDynamicFrame(summarization.transform(dynamicFrames.map(_.toDF()): _*))
   }
 }
 
-object SerializationJob {
+object SummarizationJobExecutor {
 
   def apply(args: Map[String, String], options: Seq[String], glueContext: GlueContext) = {
     args.foreach(kv => if (options.contains(kv._1)) sys.props.put(kv._1, kv._2))
-    new SerializationJob(ConfigFactory.load("serialization"), glueContext)
+    new SummarizationJobExecutor(ConfigFactory.load("summarization"), glueContext)
   }
 
   def main(sysArgs: Array[String]) = {
@@ -32,8 +32,7 @@ object SerializationJob {
     val args = GlueArgParser.getResolvedOptions(sysArgs, options.toArray)
 
     Job.init(args("JOB_NAME"), glueContext, args.asJava)
-    SerializationJob(args, options, glueContext).run()
+    SummarizationJobExecutor(args, options, glueContext).run()
     Job.commit()
   }
 }
-

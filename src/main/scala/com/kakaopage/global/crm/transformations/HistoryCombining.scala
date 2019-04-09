@@ -5,7 +5,7 @@ import com.typesafe.config.Config
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-class CombiningSerializations(config: Config, spark: SparkSession) extends Transformation(config, spark) {
+class HistoryCombining(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
   override def transform(dataFrames: DataFrame*): DataFrame = {
     dataFrames(0)
@@ -16,9 +16,9 @@ class CombiningSerializations(config: Config, spark: SparkSession) extends Trans
 }
 
 
-object CombiningSerializations {
+object HistoryCombining {
 
   def apply(config: Config, spark: SparkSession) = {
-    new CombiningSerializations(config, spark)
+    new HistoryCombining(config, spark)
   }
 }

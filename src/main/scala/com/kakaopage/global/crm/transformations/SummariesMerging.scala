@@ -6,7 +6,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
-class MergingSummarizations(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
+class SummariesMerging(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
   override def transform(dataFrames: DataFrame*): DataFrame = {
     val rdd: RDD[Row] = dataFrames(0).rdd
@@ -35,9 +35,9 @@ class MergingSummarizations(config: Config, spark: SparkSession) extends Transfo
 }
 
 
-object MergingSummarizations {
+object SummariesMerging {
 
   def apply(config: Config, spark: SparkSession) = {
-    new MergingSummarizations(config, spark)
+    new SummariesMerging(config, spark)
   }
 }

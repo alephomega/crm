@@ -5,7 +5,7 @@ import com.typesafe.config.Config
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{SparkSession, _}
 
-class MergingRelationalSummarizations(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
+class RelationalSummariesMerging(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
   override def transform(dataFrames: DataFrame*): DataFrame = {
     val df = dataFrames(0)
@@ -16,9 +16,9 @@ class MergingRelationalSummarizations(config: Config, spark: SparkSession) exten
 }
 
 
-object MergingRelationalSummarizations {
+object RelationalSummariesMerging {
 
   def apply(config: Config, spark: SparkSession) = {
-    new MergingRelationalSummarizations(config, spark)
+    new RelationalSummariesMerging(config, spark)
   }
 }
