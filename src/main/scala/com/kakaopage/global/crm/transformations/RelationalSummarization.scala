@@ -11,7 +11,10 @@ class RelationalSummarization(config: Config, spark: SparkSession) extends Trans
     val events = dataFrames(0)
     val seriesMetadata = dataFrames(1)
 
-    val agg = events.groupBy(col("customer"), col("event"), col("meta.series").as("series")).agg(count("*").as("frequency"))
+    val agg = events.filter(not(col("event") === "purchase") || col("meta.item") === "ticket")
+      .groupBy(col("customer"), col("event"), col("meta.series").as("series"))
+      .agg(count("*").as("frequency"))
+
     agg.join(seriesMetadata, Seq("series"))
   }
 }
