@@ -15,7 +15,9 @@ class RelationalSummarization(config: Config, spark: SparkSession) extends Trans
       .groupBy(col("customer"), col("event"), col("meta.series").as("series"))
       .agg(count("*").as("frequency"))
 
-    agg.join(seriesMeta, Seq("series"))
+    val meta = seriesMeta.withColumnRenamed("id", "series")
+
+    agg.join(meta, Seq("series"))
   }
 }
 
