@@ -18,7 +18,7 @@ class RelationalSummarization(config: Config, spark: SparkSession) extends Trans
 
     val meta = series.withColumnRenamed("id", "series").withColumn("categories", from_json(col("category"), new ArrayType(StringType, true))).drop(col("category"))
 
-    agg.join(meta, Seq("series")).withColumn("version", lit(config.getString("version")))
+    agg.join(meta, Seq("series")).withColumn("version", lit(config.getString("version"))).repartition(config.getInt("sink.partitions"))
   }
 }
 

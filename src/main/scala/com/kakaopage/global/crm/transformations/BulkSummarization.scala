@@ -13,6 +13,7 @@ class BulkSummarization(config: Config, spark: SparkSession) extends Transformat
       .groupBy(col("date"), col("hour"), col("customer"), col("event"))
       .agg(Summarizer(config.getString("service.timezone")).toColumn.alias("summary"))
       .select(col("date"), col("hour"), col("customer"), col("event"), col("summary.last").alias("last"), col("summary.frequency").alias("frequency"), col("summary.distribution").alias("distribution"))
+      .repartition(config.getInt("sink.partitions"))
   }
 }
 

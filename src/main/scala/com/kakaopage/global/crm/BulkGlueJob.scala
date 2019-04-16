@@ -31,7 +31,7 @@ abstract class BulkGlueJob(val config: Config, glueContext: GlueContext) {
 
     glueContext.getSinkWithFormat(
       connectionType = "s3",
-      options = JsonOptions(Map("path" -> s"s3://$path", "partitionKeys" -> partitionKeys)),
+      options = JsonOptions(Map("path" -> s"s3://$path", "partitionKeys" -> partitionKeys, "groupFiles" -> "inPartition")),
       transformationContext = config.getString("sink.context"),
       format = config.getString("sink.format"))
   }

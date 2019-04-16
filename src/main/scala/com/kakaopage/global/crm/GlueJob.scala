@@ -28,7 +28,7 @@ abstract class GlueJob(val config: Config, glueContext: GlueContext) {
     val path = config.getString("sink.path")
     glueContext.getSinkWithFormat(
       connectionType = "s3",
-      options = JsonOptions(f"""{"path": "s3://$path%s"}"""),
+      options = JsonOptions(Map("path" -> s"s3://$path", "groupFiles" -> "inPartition")),
       transformationContext = config.getString("sink.context"),
       format = config.getString("sink.format"))
   }

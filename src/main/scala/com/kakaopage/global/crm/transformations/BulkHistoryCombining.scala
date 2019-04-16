@@ -13,6 +13,7 @@ class BulkHistoryCombining(config: Config, spark: SparkSession) extends Transfor
       .groupBy(col("date"), col("customer"))
       .agg(collect_list(col("events")).alias("events"))
       .withColumn("hour", lit("*"))
+      .repartition(config.getInt("sink.partitions"))
   }
 }
 

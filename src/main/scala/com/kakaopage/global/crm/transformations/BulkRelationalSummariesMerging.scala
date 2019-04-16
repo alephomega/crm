@@ -11,7 +11,11 @@ class BulkRelationalSummariesMerging(config: Config, spark: SparkSession) extend
     val df = dataFrames(0)
     val cols = df.columns.filter(name => !Seq("version", "hour", "frequency").contains(name)).map(col)
 
-    df.groupBy(cols: _*).agg(sum(col("frequency")).as("frequency")).withColumn("hour", lit("*")).withColumn("version", lit(config.getString("version")))
+    df.groupBy(cols: _*)
+      .agg(sum(col("frequency")).as("frequency"))
+      .withColumn("hour", lit("*"))
+      .withColumn("version", lit(config.getString("version")))
+      .repartition(config.getInt("sink.partitions"))
   }
 }
 

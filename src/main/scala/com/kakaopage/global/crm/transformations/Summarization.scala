@@ -21,6 +21,7 @@ class Summarization(config: Config, spark: SparkSession) extends Transformation(
         col("customer"),
         col("event"))
       .agg(Summarizer(config.getString("service.timezone")).toColumn)
+      .repartition(config.getInt("sink.partitions"))
   }
 
   /*

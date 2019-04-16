@@ -16,9 +16,9 @@ class BulkRelationalSummarization(config: Config, spark: SparkSession) extends T
       .groupBy(col("date"), col("hour"), col("customer"), col("event"), col("meta.series").as("series"))
       .agg(count("*").as("frequency"))
 
-    val meta = series.withColumnRenamed("id", "series").withColumn("categories", from_json(col("category"), new ArrayType(StringType, true))).drop(col("category"))
+    val meta = series.withColumnRenamed("id", "series").withColumn("categories", from_json(col("category"), new ArrayType(StringType, true))).drop(col("category")).repartition(config.getInt("sink.partitions"))
 
-    agg.join(meta, Seq("series"))
+    agg.join(meta, Seq("series")).repartition(config.getInt("sink.partitions"))
   }
 }
 

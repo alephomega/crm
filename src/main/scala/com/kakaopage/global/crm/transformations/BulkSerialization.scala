@@ -8,7 +8,7 @@ import org.apache.spark.sql.functions._
 class BulkSerialization(config: Config, spark: SparkSession) extends Transformation(config, spark) {
 
   override def transform(dataFrames: DataFrame*): DataFrame = {
-    dataFrames(0).groupBy("date", "hour", "customer").agg(collect_list(struct("id", "at", "event", "meta")).alias("events"))
+    dataFrames(0).groupBy("date", "hour", "customer").agg(collect_list(struct("id", "at", "event", "meta")).alias("events")).repartition(config.getInt("sink.partitions"))
   }
 }
 

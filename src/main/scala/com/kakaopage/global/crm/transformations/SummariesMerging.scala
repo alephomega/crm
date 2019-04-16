@@ -19,7 +19,7 @@ class SummariesMerging(config: Config, spark: SparkSession) extends Transformati
         }
       }
 
-      spark.createDataFrame(rdd, schema)
+      spark.createDataFrame(rdd, schema).repartition(config.getInt("sink.partitions"))
   }
 
   def merge(summaries: Iterable[Summary]): Aggregation = {

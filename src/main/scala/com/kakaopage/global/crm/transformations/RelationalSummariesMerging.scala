@@ -11,7 +11,7 @@ class RelationalSummariesMerging(config: Config, spark: SparkSession) extends Tr
     val df = dataFrames(0)
     val cols = df.columns.filter(name => !Seq("version", "date", "hour", "frequency").contains(name)).map(col)
 
-    df.groupBy(cols: _*).agg(sum(col("frequency")).as("frequency"))
+    df.groupBy(cols: _*).agg(sum(col("frequency")).as("frequency")).repartition(config.getInt("sink.partitions"))
   }
 }
 

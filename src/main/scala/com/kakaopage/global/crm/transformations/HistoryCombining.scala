@@ -12,6 +12,7 @@ class HistoryCombining(config: Config, spark: SparkSession) extends Transformati
       .select(col("customer"), explode(col("events")).alias("events"))
       .groupBy(col("customer"))
       .agg(collect_list(col("events")).alias("events"))
+      .repartition(config.getInt("sink.partitions"))
   }
 }
 
