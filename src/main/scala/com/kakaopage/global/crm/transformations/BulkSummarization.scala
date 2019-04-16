@@ -12,7 +12,7 @@ class BulkSummarization(config: Config, spark: SparkSession) extends Transformat
       .filter(not(col("at").isNull))
       .groupBy(col("date"), col("hour"), col("customer"), col("event"))
       .agg(Summarizer(config.getString("service.timezone")).toColumn.alias("summary"))
-      .select(col("customer"), col("name"), col("summary.last").alias("last"), col("summary.frequency").alias("frequency"), col("summary.distribution").alias("distribution"))
+      .select(col("date"), col("hour"), col("customer"), col("event"), col("summary.last").alias("last"), col("summary.frequency").alias("frequency"), col("summary.distribution").alias("distribution"))
   }
 }
 

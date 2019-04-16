@@ -47,6 +47,16 @@ object SummarizationBuffer {
     SummarizationBuffer(last, frequency, distribution)
   }
 
+  def parse(at: String): Timestamp = new Timestamp(Date.from(Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(at))).getTime)
+
+  def format(opt: Option[Timestamp], timeZone: TimeZone): String = opt match {
+    case Some(t) =>
+      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX").withZone(ZoneId.of(timeZone.getID))
+      formatter.format(t.toInstant)
+
+    case _ => ""
+  }
+
   private def h(t: Timestamp, timeZone: TimeZone) = {
     val cal = Calendar.getInstance(timeZone)
     cal.setTime(t)
@@ -61,14 +71,13 @@ object SummarizationBuffer {
 }
 
 
-
 class Summarizer(tz: String) extends Aggregator[Row, SummarizationBuffer, SummarizationResult] with Serializable {
   val timeZone = TimeZone.getTimeZone(tz)
 
   override def zero: SummarizationBuffer = new SummarizationBuffer(None, 0, Distribution(hour = Array.fill[Int](24)(0), day = Array.fill[Int](7)(0)))
 
   override def reduce(b: SummarizationBuffer, row: Row): SummarizationBuffer = {
-    SummarizationBuffer.add(b, parse(row.getAs[String]("at")), timeZone)
+    SummarizationBuffer.add(b, SummarizationBuffer.parse(row.getAs[String]("at")), timeZone)
   }
 
   override def merge(b1: SummarizationBuffer, b2: SummarizationBuffer): SummarizationBuffer = {
@@ -76,7 +85,7 @@ class Summarizer(tz: String) extends Aggregator[Row, SummarizationBuffer, Summar
   }
 
   override def finish(reduction: SummarizationBuffer): SummarizationResult = {
-    SummarizationResult(format(reduction.last), reduction.frequency, reduction.distribution)
+    SummarizationResult(SummarizationBuffer.format(reduction.last, timeZone), reduction.frequency, reduction.distribution)
   }
 
   override def bufferEncoder: Encoder[SummarizationBuffer] = {
@@ -86,18 +95,45 @@ class Summarizer(tz: String) extends Aggregator[Row, SummarizationBuffer, Summar
   override def outputEncoder: Encoder[SummarizationResult] = {
     Encoders.product[SummarizationResult]
   }
-
-  def parse(at: String): Timestamp = new Timestamp(Date.from(Instant.from(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(at))).getTime)
-
-  def format(opt: Option[Timestamp]): String = opt match {
-    case Some(t) =>
-      val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX").withZone(ZoneId.of(timeZone.getID))
-      formatter.format(t.toInstant)
-
-    case _ => ""
-  }
 }
 
 object Summarizer {
   def apply(tz: String): Summarizer = new Summarizer(tz)
+}
+
+
+class Merger(tz: String) extends Aggregator[Row, SummarizationBuffer, SummarizationResult] with Serializable {
+  val timeZone = TimeZone.getTimeZone(tz)
+
+  override def zero: SummarizationBuffer = new SummarizationBuffer(None, 0, Distribution(hour = Array.fill[Int](24)(0), day = Array.fill[Int](7)(0)))
+
+  override def reduce(b: SummarizationBuffer, row: Row): SummarizationBuffer = {
+    val last = row.getAs[String]("last")
+    val frequency = row.getAs[Int]("frequency")
+
+    val d = row.getAs[Row]("distribution")
+    val distribution = Distribution(d.getAs[Array[Int]]("hour"), d.getAs[Array[Int]]("day"))
+
+    SummarizationBuffer.merge(b, SummarizationBuffer(Some(SummarizationBuffer.parse(last)), frequency, distribution))
+  }
+
+  override def merge(b1: SummarizationBuffer, b2: SummarizationBuffer): SummarizationBuffer = {
+    SummarizationBuffer.merge(b1, b2)
+  }
+
+  override def finish(reduction: SummarizationBuffer): SummarizationResult = {
+    SummarizationResult(SummarizationBuffer.format(reduction.last, timeZone), reduction.frequency, reduction.distribution)
+  }
+
+  override def bufferEncoder: Encoder[SummarizationBuffer] = {
+    Encoders.product[SummarizationBuffer]
+  }
+
+  override def outputEncoder: Encoder[SummarizationResult] = {
+    Encoders.product[SummarizationResult]
+  }
+}
+
+object Merger {
+  def apply(tz: String): Merger = new Merger(tz)
 }
