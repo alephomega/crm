@@ -1,6 +1,5 @@
 package com.kakaopage.global.crm
 
-import java.text.SimpleDateFormat
 import java.util.{Calendar, Date, TimeZone}
 
 import org.apache.commons.lang3.time.FastDateFormat
@@ -21,7 +20,7 @@ class Aggregation(val timezone: String) extends Serializable {
     }
 
     frequency += 1
-    distribution.increment(h(t), d(t))
+    distribution = Distribution.increment(distribution, h(t), d(t))
   }
 
   def aggregate(summary: Summary) = {
@@ -33,10 +32,10 @@ class Aggregation(val timezone: String) extends Serializable {
     }
 
     frequency += summary.frequency
-    distribution.merge(summary.distribution)
+    distribution = Distribution.merge(distribution, summary.distribution)
   }
 
-  def toRow: Row = Row(Aggregation.format(last.orNull), frequency, distribution.toRow())
+  def toRow: Row = Row(Aggregation.format(last.orNull), frequency, distribution.toRow)
 
   private def h(t: Date) = {
     val cal = Calendar.getInstance(TimeZone.getTimeZone(timezone))
