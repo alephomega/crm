@@ -9,6 +9,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 class Summarization(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
   override def transform(dataFrames: DataFrame*): DataFrame = {
+    /*
     dataFrames(0)
       .select(
         col("customer"),
@@ -21,6 +22,16 @@ class Summarization(config: Config, spark: SparkSession) extends Transformation(
         col("customer"),
         col("event"))
       .agg(Summarizer(config.getString("service.timezone")).toColumn)
+      .repartition(config.getInt("sink.partitions"))
+      */
+
+    dataFrames(0)
+      .select(col("customer"), col("event"), col("at"))
+      .groupBy(
+        col("customer"),
+        col("event"))
+      .agg(Summarizer(config.getString("service.timezone")).toColumn.alias("summary"))
+      .select(col("customer"), col("event"), col("summary.last").alias("last"), col("summary.frequency").alias("frequency"), col("summary.distribution").alias("distribution"))
       .repartition(config.getInt("sink.partitions"))
   }
 

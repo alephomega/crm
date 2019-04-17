@@ -21,7 +21,7 @@ object BulkRelationalSummarizationJobExecutor {
 
   def apply(args: Map[String, String], options: Seq[String], glueContext: GlueContext) = {
     args.foreach(kv => if (options.contains(kv._1)) sys.props.put(kv._1, kv._2))
-    new RelationalSummarizationJobExecutor(ConfigFactory.load("bulk-relational-summarization"), glueContext)
+    new BulkRelationalSummarizationJobExecutor(ConfigFactory.load("bulk-relational-summarization"), glueContext)
   }
 
   def main(sysArgs: Array[String]): Unit = {
