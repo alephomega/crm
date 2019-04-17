@@ -2,23 +2,26 @@ package com.kakaopage.global.crm.transformations
 
 import com.kakaopage.global.crm.Transformation
 import com.typesafe.config.Config
-import org.apache.spark.sql.{SparkSession, _}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{ArrayType, StringType}
+import org.apache.spark.sql.{SparkSession, _}
 
 class BulkRelationalSummarization(config: Config, spark: SparkSession) extends Transformation(config, spark) with Serializable {
 
-  override def transform(dataFrames: DataFrame*): DataFrame = {
-    val events = dataFrames(0)
-    val series = dataFrames(1)
+  val categories = udf((s: String) => {
+    s.substring(1, s.length-1).split(",").map(_.trim.replaceAllLiterally("\"", ""))
+  })
 
-    val agg = events.filter(not(col("event") === "purchase") || col("meta.item") === "ticket")
+  override def transform(dataFrames: DataFrame*): DataFrame = {
+    val series = dataFrames(0)
+    val events = dataFrames(1)
+
+    val agg = events.filter(col("meta.series").isNotNull)
       .groupBy(col("date"), col("hour"), col("customer"), col("event"), col("meta.series").as("series"))
       .agg(count("*").as("frequency"))
 
-    val meta = series.withColumnRenamed("id", "series").withColumn("categories", from_json(col("category"), new ArrayType(StringType, true))).drop(col("category")).repartition(config.getInt("sink.partitions"))
+    val meta = series.withColumnRenamed("id", "series").withColumn("categories", categories(col("category"))).drop(col("category"))
 
-    agg.join(meta, Seq("series")).repartition(config.getInt("sink.partitions"))
+    agg.join(meta, Seq("series")).withColumn("version", lit(config.getString("version"))).repartition(config.getInt("sink.partitions"))
   }
 }
 
