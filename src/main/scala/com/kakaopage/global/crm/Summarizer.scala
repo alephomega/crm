@@ -112,7 +112,7 @@ class Merger(tz: String) extends Aggregator[Row, SummarizationBuffer, Summarizat
     val frequency = row.getAs[Int]("frequency")
 
     val d = row.getAs[Row]("distribution")
-    val distribution = Distribution(d.getAs[Array[Int]]("hour"), d.getAs[Array[Int]]("day"))
+    val distribution = Distribution(d.getAs[Seq[Int]]("hour").toArray, d.getAs[Seq[Int]]("day").toArray)
 
     SummarizationBuffer.merge(b, SummarizationBuffer(Some(SummarizationBuffer.parse(last)), frequency, distribution))
   }
