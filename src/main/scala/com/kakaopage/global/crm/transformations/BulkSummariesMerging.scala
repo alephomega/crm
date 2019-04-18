@@ -11,8 +11,7 @@ class BulkSummariesMerging(config: Config, spark: SparkSession) extends Transfor
     dataFrames(0)
       .groupBy(col("date"), col("customer"), col("event"))
       .agg(Merger(config.getString("service.timezone")).toColumn.alias("summary"))
-      .select(col("date"), col("customer"), col("event"), col("summary.last").alias("last"), col("summary.frequency").alias("frequency"), col("summary.distribution").alias("distribution"))
-      .withColumn("hour", lit("*"))
+      .select(col("date"), lit("*").alias("hour"), col("customer"), col("event"), col("summary.last").alias("last"), col("summary.frequency").alias("frequency"), col("summary.distribution").alias("distribution"))
       .repartition(config.getInt("sink.partitions"))
   }
 }
